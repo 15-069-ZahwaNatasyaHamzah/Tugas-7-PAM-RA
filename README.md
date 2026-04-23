@@ -1,65 +1,68 @@
-# MyProfileApp - Kotlin Multiplatform
+# MyProfile & Notes App - Kotlin Multiplatform
 
-Aplikasi Profil interaktif yang dibangun menggunakan **Compose Multiplatform** (Kotlin Multiplatform). Proyek ini menunjukkan implementasi desain modern Android dengan arsitektur MVVM, pengelolaan state reaktif, dan fitur tema dinamis.
+Aplikasi manajemen catatan (Notes App) interaktif yang dibangun menggunakan **Compose Multiplatform**. Proyek ini merupakan pengembangan lebih lanjut yang mengintegrasikan sistem navigasi kompleks, manajemen data dinamis, dan profil pengguna dalam satu arsitektur MVVM yang solid.
 
-## 🚀 Fitur Utama
+## 🚀 Fitur Baru (Tugas 4 - Navigasi & Notes)
 
-- **Model-View-ViewModel (MVVM)**: Pemisahan logika bisnis dan UI yang bersih menggunakan `ViewModel` dan `StateFlow`.
-- **Edit Profile**: Fitur untuk mengubah Nama dan Bio secara langsung dengan validasi state lokal (*State Hoisting*).
-- **Dark Mode Toggle**: Dukungan penuh untuk tema Terang (Light) dan Gelap (Dark) yang dapat diubah secara instan.
-- **Responsive UI**: Tata letak yang dioptimalkan agar tetap terlihat baik di berbagai ukuran layar, termasuk optimasi ruang untuk elemen interaktif di bagian bawah.
-- **Interactive Dialog**: Komponen informasi tambahan menggunakan `AlertDialog` Material 3.
+- **Bottom Navigation**: Navigasi utama dengan 3 tab:
+  - 📝 **Notes**: Daftar utama semua catatan pengguna.
+  - ❤️ **Favorites**: Koleksi catatan yang ditandai sebagai favorit.
+  - 👤 **Profile**: Informasi profil pengguna dengan fitur Dark Mode & Edit.
+- **Full CRUD Notes**: 
+  - Menambah catatan baru melalui **Floating Action Button (FAB)**.
+  - Melihat detail catatan dengan passing `noteId`.
+  - Mengedit catatan yang sudah ada.
+  - Menghapus dan menandai favorit.
+- **Advanced Navigation**: 
+  - Implementasi `androidx.navigation.compose`.
+  - Perpindahan layar dengan argument passing (Passing `noteId`).
+  - Navigasi balik (Back stack) yang proper di semua layar.
+- **Multi-ViewModel Arch**: 
+  - `NotesViewModel`: Mengelola state daftar catatan dan logika CRUD.
+  - `ProfileViewModel`: Mengelola status profil dan tema aplikasi.
 
-## 🏗️ Implementasi Arsitektur
+## 🏗️ Struktur Arsitektur
 
-### 1. MVVM Pattern
-- **Model**: `ProfileUiState.kt` menyimpan data mentah seperti nama, bio, dan status UI.
-- **ViewModel**: `ProfileViewModel.kt` mengelola logika untuk memperbarui profil dan beralih tema menggunakan `MutableStateFlow`.
-- **View**: `App.kt` berisi komponen UI Compose yang mengamati (*observe*) state dari ViewModel dan bereaksi terhadap perubahan data.
+### 1. Navigasi
+Menggunakan **Jetpack Navigation Compose** untuk mengatur aliran aplikasi:
+- `NavHost` sebagai kontainer utama.
+- Rute dinamis untuk detail dan edit: `note_detail/{noteId}`.
+- Integrasi `Scaffold` untuk mengelola Bottom Bar dan FAB secara global.
 
 ### 2. State Management
-Menggunakan `collectAsStateWithLifecycle()` untuk memastikan pengamatan state yang efisien dan aman terhadap siklus hidup (*lifecycle-aware*) pada platform Android.
+- **StateFlow & UI State**: Setiap perubahan pada catatan atau profil dipancarkan melalui `StateFlow` dan diobservasi oleh UI secara reaktif.
+- **Lifecycle Awareness**: Menggunakan `collectAsStateWithLifecycle()` untuk efisiensi memori pada platform Android.
 
 ## 🛠️ Tech Stack
-- **Language**: Kotlin
 - **Framework**: Compose Multiplatform
-- **UI Components**: Material 3
-- **Architecture**: MVVM
-- **State Flow**: Kotlin Coroutines & Flow
-- **Image Loading**: Coil 3 (KMP Support)
+- **Navigation**: Navigation Compose
+- **Architecture**: MVVM (Model-View-ViewModel)
+- **Concurrency**: Kotlin Coroutines & Flow
+- **UI Components**: Material Design 3 (M3)
+- **Serialization**: KotlinX Serialization (untuk rute navigasi)
 
 ## 🏃 Cara Menjalankan Project
 
 ### Prasyarat
-- Android Studio (versi terbaru disarankan).
-- JDK 17 atau yang lebih baru.
-- Android SDK yang sudah terpasang.
+- Android Studio (Koala atau lebih baru disarankan).
+- JDK 17+.
+- Emulator Android atau Perangkat Fisik.
 
-### Jalankan di Android
-1. Buka proyek di **Android Studio**.
-2. Tunggu proses **Gradle Sync** selesai.
-3. Pilih konfigurasi run `composeApp` di toolbar atas.
-4. Pilih emulator atau perangkat fisik Android.
-5. Klik tombol **Run** (Play Hijau).
+### Langkah-langkah
+1.  **Clone/Buka Project**: Buka folder project di Android Studio.
+2.  **Gradle Sync**: Tunggu hingga proses sinkronisasi library selesai.
+3.  **Run**:
+    - Klik menu dropdown di toolbar atas, pilih **`composeApp`**.
+    - Klik tombol **Run** (Play Hijau).
 
-### Jalankan melalui Terminal
-Anda juga dapat menjalankan perintah berikut dari root direktori proyek:
-
-**Untuk Android:**
+### Perintah Terminal (Opsional)
 ```bash
+# Instal ke Android
 ./gradlew :composeApp:installDebug
-adb shell am start -n com.example.myprofileapp/com.example.myprofileapp.MainActivity
-```
 
-**Untuk Desktop (JVM):**
-```bash
+# Jalankan di Desktop
 ./gradlew :composeApp:run
 ```
 
-## 📂 Struktur Folder Utama
-- `composeApp/src/commonMain/kotlin/com/example/myprofileapp/`: Berisi logika UI utama dan ViewModel (Shared Code).
-- `composeApp/src/androidMain/`: Kode spesifik platform Android.
-- `shared/`: Modul untuk logika bisnis yang dibagikan antar platform.
-
 ---
-*Dikembangkan sebagai bagian dari Tugas Pengembangan Aplikasi Mobile.*
+*Dikembangkan sebagai bagian dari Tugas Pengembangan Aplikasi Mobile (PAM).*

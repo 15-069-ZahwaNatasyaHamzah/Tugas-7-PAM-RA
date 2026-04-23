@@ -54,6 +54,7 @@ kotlin {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
+            implementation(libs.androidx.navigation.compose)
             implementation(projects.shared)
             implementation("io.coil-kt.coil3:coil-compose:3.0.0")
             implementation(compose.materialIconsExtended)
