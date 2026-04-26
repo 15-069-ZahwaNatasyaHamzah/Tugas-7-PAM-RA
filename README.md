@@ -1,68 +1,69 @@
-# MyProfile & Notes App - Kotlin Multiplatform
+# MyProfile & Notes App - Kotlin Multiplatform (Week 7 Upgrade)
 
-Aplikasi manajemen catatan (Notes App) interaktif yang dibangun menggunakan **Compose Multiplatform**. Proyek ini merupakan pengembangan lebih lanjut yang mengintegrasikan sistem navigasi kompleks, manajemen data dinamis, dan profil pengguna dalam satu arsitektur MVVM yang solid.
+Aplikasi manajemen catatan (Notes App) interaktif yang dibangun menggunakan **Compose Multiplatform**. Versi ini adalah upgrade signifikan dengan fitur database lokal, pengaturan persisten, dan fungsionalitas pencarian.
 
-## 🚀 Fitur Baru (Tugas 4 - Navigasi & Notes)
+## 🚀 Fitur Baru (Tugas 7 - Database & DataStore)
 
-- **Bottom Navigation**: Navigasi utama dengan 3 tab:
-  - 📝 **Notes**: Daftar utama semua catatan pengguna.
-  - ❤️ **Favorites**: Koleksi catatan yang ditandai sebagai favorit.
-  - 👤 **Profile**: Informasi profil pengguna dengan fitur Dark Mode & Edit.
-- **Full CRUD Notes**: 
-  - Menambah catatan baru melalui **Floating Action Button (FAB)**.
-  - Melihat detail catatan dengan passing `noteId`.
-  - Mengedit catatan yang sudah ada.
-  - Menghapus dan menandai favorit.
-- **Advanced Navigation**: 
-  - Implementasi `androidx.navigation.compose`.
-  - Perpindahan layar dengan argument passing (Passing `noteId`).
-  - Navigasi balik (Back stack) yang proper di semua layar.
-- **Multi-ViewModel Arch**: 
-  - `NotesViewModel`: Mengelola state daftar catatan dan logika CRUD.
-  - `ProfileViewModel`: Mengelola status profil dan tema aplikasi.
+- **SQLDelight Database**: 
+  - Penyimpanan lokal yang tangguh dan offline-first.
+  - CRUD lengkap: Create, Read, Update, Delete.
+  - Sinkronisasi reaktif menggunakan Kotlin Flow.
+- **Search Functionality**:
+  - Cari catatan berdasarkan judul atau konten secara real-time.
+  - Mendukung pencarian case-insensitive.
+- **Settings with DataStore**:
+  - Layar pengaturan baru untuk mengelola preferensi aplikasi.
+  - Tema (Dark/Light) tersimpan secara permanen menggunakan Jetpack DataStore Preferences.
+- **Offline-First Architecture**: 
+  - Data tersimpan secara lokal di perangkat, memungkinkan penggunaan tanpa koneksi internet.
+- **Proper UI States**:
+  - **Loading State**: Menampilkan indikator saat mengambil data.
+  - **Empty State**: Pesan informatif saat tidak ada catatan atau hasil pencarian nihil.
+  - **Content State**: Tampilan daftar catatan yang rapi.
+
+## 🏗️ Database Schema (SQLDelight)
+
+```sql
+CREATE TABLE NoteEntity (
+    id TEXT NOT NULL PRIMARY KEY,
+    title TEXT NOT NULL,
+    content TEXT NOT NULL,
+    isFavorite INTEGER AS Boolean DEFAULT 0 NOT NULL,
+    timestamp INTEGER NOT NULL
+);
+```
 
 ## 🏗️ Struktur Arsitektur
 
-### 1. Navigasi
-Menggunakan **Jetpack Navigation Compose** untuk mengatur aliran aplikasi:
-- `NavHost` sebagai kontainer utama.
-- Rute dinamis untuk detail dan edit: `note_detail/{noteId}`.
-- Integrasi `Scaffold` untuk mengelola Bottom Bar dan FAB secara global.
+### 1. Data Layer
+- `NoteRepository`: Menangani komunikasi antara ViewModel dan SQLDelight.
+- `SettingsRepository`: Menangani preferensi pengguna menggunakan DataStore.
+- `DatabaseDriverFactory`: Implementasi platform-specific untuk driver SQLite.
 
-### 2. State Management
-- **StateFlow & UI State**: Setiap perubahan pada catatan atau profil dipancarkan melalui `StateFlow` dan diobservasi oleh UI secara reaktif.
-- **Lifecycle Awareness**: Menggunakan `collectAsStateWithLifecycle()` untuk efisiensi memori pada platform Android.
+### 2. UI Layer
+- `NotesViewModel`: Logika pencarian, filter favorit, dan operasi CRUD.
+- `ProfileViewModel`: Logika profil dan integrasi pengaturan tema DataStore.
+- `NotesScreens`: Layar daftar, detail, dan tambah/edit catatan.
+- `SettingsScreen`: Layar untuk mengelola preferensi aplikasi.
 
 ## 🛠️ Tech Stack
+- **Database**: SQLDelight 2.0.2
+- **Persistence**: Jetpack DataStore 1.1.1
 - **Framework**: Compose Multiplatform
 - **Navigation**: Navigation Compose
-- **Architecture**: MVVM (Model-View-ViewModel)
-- **Concurrency**: Kotlin Coroutines & Flow
-- **UI Components**: Material Design 3 (M3)
-- **Serialization**: KotlinX Serialization (untuk rute navigasi)
+- **Architecture**: MVVM
+- **State Management**: StateFlow & Flow
 
 ## 🏃 Cara Menjalankan Project
 
 ### Prasyarat
-- Android Studio (Koala atau lebih baru disarankan).
+- Android Studio Koala+.
 - JDK 17+.
-- Emulator Android atau Perangkat Fisik.
 
 ### Langkah-langkah
-1.  **Clone/Buka Project**: Buka folder project di Android Studio.
-2.  **Gradle Sync**: Tunggu hingga proses sinkronisasi library selesai.
-3.  **Run**:
-    - Klik menu dropdown di toolbar atas, pilih **`composeApp`**.
-    - Klik tombol **Run** (Play Hijau).
-
-### Perintah Terminal (Opsional)
-```bash
-# Instal ke Android
-./gradlew :composeApp:installDebug
-
-# Jalankan di Desktop
-./gradlew :composeApp:run
-```
+1.  Buka project di Android Studio.
+2.  Lakukan **Gradle Sync** untuk mengunduh dependensi SQLDelight dan DataStore.
+3.  Jalankan aplikasi pada emulator atau perangkat fisik.
 
 ---
-*Dikembangkan sebagai bagian dari Tugas Pengembangan Aplikasi Mobile (PAM).*
+*Tugas 7 Pengembangan Aplikasi Mobile (PAM).*
