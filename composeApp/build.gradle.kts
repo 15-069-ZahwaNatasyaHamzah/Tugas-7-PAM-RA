@@ -41,6 +41,7 @@ kotlin {
         binaries.executable()
     }
     
+    sourceSets {
         androidMain.dependencies {
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.androidx.activity.compose)

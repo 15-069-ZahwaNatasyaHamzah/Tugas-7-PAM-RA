@@ -1,15 +1,13 @@
 package com.example.myprofileapp
 
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.animation.*
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.*
@@ -21,8 +19,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable
@@ -32,71 +32,82 @@ fun NotesScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+    Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            Text(
+                "Catatan Saya",
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.ExtraBold,
+                modifier = Modifier.padding(horizontal = 24.dp, vertical = 24.dp)
+            )
+
+            SimpleSearchBar(
+                query = if (uiState is NotesUiState.Success) (uiState as NotesUiState.Success).searchQuery else "",
+                onQueryChange = viewModel::onSearch
+            )
+
+            when (uiState) {
+                is NotesUiState.Loading -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(strokeCap = StrokeCap.Round)
+                    }
+                }
+                is NotesUiState.Empty -> {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(Icons.AutoMirrored.Filled.NoteAdd, contentDescription = null, modifier = Modifier.size(80.dp), tint = MaterialTheme.colorScheme.outlineVariant)
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text((uiState as NotesUiState.Empty).message, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.outline)
+                        }
+                    }
+                }
+                is NotesUiState.Success -> {
+                    val notes = (uiState as NotesUiState.Success).notes
+                    LazyVerticalStaggeredGrid(
+                        columns = StaggeredGridCells.Fixed(2),
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(bottom = 100.dp, start = 16.dp, end = 16.dp, top = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        verticalItemSpacing = 16.dp
+                    ) {
+                        items(notes) { note ->
+                            NoteItem(
+                                note = note,
+                                onNoteClick = { onNoteClick(note.id) },
+                                onToggleFavorite = { viewModel.toggleFavorite(note.id) }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        // MODERN FLOATING NETWORK INDICATOR
         val isOnline = when (uiState) {
             is NotesUiState.Success -> (uiState as NotesUiState.Success).isOnline
             is NotesUiState.Empty -> (uiState as NotesUiState.Empty).isOnline
             else -> true
         }
 
-        if (!isOnline) {
+        AnimatedVisibility(
+            visible = !isOnline,
+            enter = slideInVertically { -it } + fadeIn(),
+            exit = slideOutVertically { -it } + fadeOut(),
+            modifier = Modifier.align(Alignment.TopCenter).padding(top = 12.dp)
+        ) {
             Surface(
-                modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colorScheme.errorContainer
+                color = MaterialTheme.colorScheme.error,
+                shape = CircleShape,
+                tonalElevation = 8.dp,
+                shadowElevation = 4.dp
             ) {
-                Text(
-                    "Sedang Offline",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onErrorContainer,
-                    modifier = Modifier.padding(vertical = 4.dp),
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                )
-            }
-        }
-
-        Text(
-            "Catatan Saya",
-            style = MaterialTheme.typography.headlineLarge,
-            fontWeight = FontWeight.ExtraBold,
-            modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
-        )
-
-        SimpleSearchBar(
-            query = if (uiState is NotesUiState.Success) (uiState as NotesUiState.Success).searchQuery else "",
-            onQueryChange = viewModel::onSearch
-        )
-
-        when (uiState) {
-            is NotesUiState.Loading -> {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(strokeCap = StrokeCap.Round)
-                }
-            }
-            is NotesUiState.Empty -> {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(Icons.Default.NoteAdd, contentDescription = null, modifier = Modifier.size(64.dp), tint = MaterialTheme.colorScheme.outlineVariant)
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text((uiState as NotesUiState.Empty).message, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.outline)
-                    }
-                }
-            }
-            is NotesUiState.Success -> {
-                val notes = (uiState as NotesUiState.Success).notes
-                LazyVerticalStaggeredGrid(
-                    columns = StaggeredGridCells.Fixed(2),
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(bottom = 100.dp, start = 16.dp, end = 16.dp, top = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalItemSpacing = 12.dp
+                Row(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    items(notes) { note ->
-                        NoteItem(
-                            note = note,
-                            onNoteClick = { onNoteClick(note.id) },
-                            onToggleFavorite = { viewModel.toggleFavorite(note.id) }
-                        )
-                    }
+                    Icon(Icons.Default.CloudOff, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Mode Offline", color = Color.White, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -108,24 +119,35 @@ fun SimpleSearchBar(
     query: String,
     onQueryChange: (String) -> Unit
 ) {
-    OutlinedTextField(
-        value = query,
-        onValueChange = onQueryChange,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        placeholder = { Text("Cari catatan...") },
-        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-        trailingIcon = {
-            if (query.isNotEmpty()) {
-                IconButton(onClick = { onQueryChange("") }) {
-                    Icon(Icons.Default.Clear, contentDescription = "Clear")
-                }
-            }
-        },
+    Surface(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
         shape = RoundedCornerShape(24.dp),
-        singleLine = true
-    )
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+    ) {
+        TextField(
+            value = query,
+            onValueChange = onQueryChange,
+            placeholder = { Text("Cari ide cemerlangmu...") },
+            leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = MaterialTheme.colorScheme.primary) },
+            trailingIcon = {
+                if (query.isNotEmpty()) {
+                    IconButton(onClick = { onQueryChange("") }) {
+                        Icon(Icons.Default.Clear, contentDescription = "Clear")
+                    }
+                }
+            },
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = Color.Transparent,
+                unfocusedContainerColor = Color.Transparent,
+                disabledContainerColor = Color.Transparent,
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+            ),
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
 }
 
 @Composable
@@ -136,32 +158,11 @@ fun FavoritesScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-        val isOnline = when (uiState) {
-            is NotesUiState.Success -> (uiState as NotesUiState.Success).isOnline
-            is NotesUiState.Empty -> (uiState as NotesUiState.Empty).isOnline
-            else -> true
-        }
-
-        if (!isOnline) {
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colorScheme.errorContainer
-            ) {
-                Text(
-                    "Sedang Offline",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onErrorContainer,
-                    modifier = Modifier.padding(vertical = 4.dp),
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                )
-            }
-        }
-
         Text(
             "Favorit",
             style = MaterialTheme.typography.headlineLarge,
             fontWeight = FontWeight.ExtraBold,
-            modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
+            modifier = Modifier.padding(horizontal = 24.dp, vertical = 24.dp)
         )
 
         when (uiState) {
@@ -178,15 +179,19 @@ fun FavoritesScreen(
 
                 if (notes.isEmpty()) {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("Belum ada catatan favorit.")
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(Icons.Default.FavoriteBorder, contentDescription = null, modifier = Modifier.size(80.dp), tint = MaterialTheme.colorScheme.outlineVariant)
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text("Belum ada favorit.", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.outline)
+                        }
                     }
                 } else {
                     LazyVerticalStaggeredGrid(
                         columns = StaggeredGridCells.Fixed(2),
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(bottom = 100.dp, start = 16.dp, end = 16.dp, top = 8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
-                        verticalItemSpacing = 12.dp
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        verticalItemSpacing = 16.dp
                     ) {
                         items(notes) { note ->
                             NoteItem(
@@ -208,17 +213,15 @@ fun NoteItem(
     onNoteClick: () -> Unit,
     onToggleFavorite: () -> Unit
 ) {
-    Card(
+    Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(24.dp))
             .clickable(onClick = onNoteClick),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-        ),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
+        shape = RoundedCornerShape(28.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(20.dp)) {
             Row(verticalAlignment = Alignment.Top) {
                 Text(
                     text = note.title,
@@ -228,26 +231,33 @@ fun NoteItem(
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
-                Icon(
-                    imageVector = if (note.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp).clickable { onToggleFavorite() },
-                    tint = if (note.isFavorite) Color(0xFFFF4BB3) else MaterialTheme.colorScheme.outline
-                )
+                IconButton(
+                    onClick = onToggleFavorite,
+                    modifier = Modifier.size(24.dp)
+                ) {
+                    Icon(
+                        imageVector = if (note.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp),
+                        tint = if (note.isFavorite) Color(0xFFFF4BB3) else MaterialTheme.colorScheme.outline
+                    )
+                }
             }
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(10.dp))
             Text(
                 text = note.content,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 6,
-                overflow = TextOverflow.Ellipsis
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                maxLines = 8,
+                overflow = TextOverflow.Ellipsis,
+                lineHeight = 20.sp
             )
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = "Baru saja",
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.outline
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                fontWeight = FontWeight.Bold
             )
         }
     }
@@ -271,8 +281,8 @@ fun NoteDetailScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Detail Catatan") },
+            CenterAlignedTopAppBar(
+                title = { Text("Baca Catatan") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -286,7 +296,7 @@ fun NoteDetailScreen(
                         viewModel.deleteNote(noteId)
                         onBack()
                     }) {
-                        Icon(Icons.Default.Delete, contentDescription = "Delete")
+                        Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error)
                     }
                 }
             )
@@ -298,7 +308,7 @@ fun NoteDetailScreen(
             }
         } else if (note == null) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("Catatan tidak ditemukan")
+                Text("Catatan menghilang...")
             }
         } else {
             Column(
@@ -306,12 +316,20 @@ fun NoteDetailScreen(
                     .padding(padding)
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
-                    .padding(16.dp)
+                    .padding(24.dp)
             ) {
-                Text(text = note!!.title, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(text = note!!.content, style = MaterialTheme.typography.bodyLarge)
-                Spacer(modifier = Modifier.height(40.dp))
+                Text(
+                    text = note!!.title, 
+                    style = MaterialTheme.typography.headlineMedium, 
+                    fontWeight = FontWeight.ExtraBold
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+                Text(
+                    text = note!!.content, 
+                    style = MaterialTheme.typography.bodyLarge,
+                    lineHeight = 28.sp
+                )
+                Spacer(modifier = Modifier.height(100.dp))
             }
         }
     }
@@ -342,15 +360,15 @@ fun AddEditNoteScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(if (noteId == null) "Tambah Catatan" else "Edit Catatan") },
+            CenterAlignedTopAppBar(
+                title = { Text(if (noteId == null) "Catatan Baru" else "Edit Ide") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = {
-                    IconButton(
+                    TextButton(
                         onClick = {
                             if (noteId == null) {
                                 viewModel.addNote(title, content)
@@ -361,7 +379,7 @@ fun AddEditNoteScreen(
                         },
                         enabled = title.isNotBlank() && content.isNotBlank()
                     ) {
-                        Icon(Icons.Default.Check, contentDescription = "Save")
+                        Text("Simpan", fontWeight = FontWeight.Bold)
                     }
                 }
             )
@@ -377,26 +395,35 @@ fun AddEditNoteScreen(
                     .padding(padding)
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
-                    .padding(16.dp)
+                    .padding(24.dp)
                     .imePadding()
             ) {
-                OutlinedTextField(
+                TextField(
                     value = title,
                     onValueChange = { title = it },
-                    label = { Text("Judul") },
+                    placeholder = { Text("Judul yang menarik...", style = MaterialTheme.typography.headlineSmall) },
                     modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
+                    textStyle = MaterialTheme.typography.headlineSmall.copy(fontWeight = FontWeight.Bold),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent
+                    )
                 )
                 Spacer(modifier = Modifier.height(16.dp))
-                OutlinedTextField(
+                TextField(
                     value = content,
                     onValueChange = { content = it },
-                    label = { Text("Konten") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = 200.dp)
+                    placeholder = { Text("Tuliskan detailnya di sini...") },
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 300.dp),
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = Color.Transparent,
+                        unfocusedContainerColor = Color.Transparent,
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent
+                    )
                 )
-                Spacer(modifier = Modifier.height(40.dp))
             }
         }
     }

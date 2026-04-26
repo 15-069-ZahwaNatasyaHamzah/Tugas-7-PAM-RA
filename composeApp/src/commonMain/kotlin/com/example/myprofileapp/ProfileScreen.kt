@@ -36,127 +36,148 @@ fun ProfileScreen(
             .verticalScroll(rememberScrollState())
             .background(MaterialTheme.colorScheme.background)
     ) {
-        // 1. TOP ROW: DARK MODE TOGGLE & SETTINGS
+        // 1. TOP ROW: MODERN TOGGLE
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp, vertical = 16.dp),
-            horizontalArrangement = Arrangement.End,
+            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = if (uiState.isDarkMode) "Dark Mode" else "Light Mode",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Switch(
-                checked = uiState.isDarkMode,
-                onCheckedChange = { viewModel.toggleDarkMode(it) },
-                modifier = Modifier.scale(0.8f)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            IconButton(onClick = onSettingsClick) {
+            Surface(
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                shape = RoundedCornerShape(20.dp)
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        if (uiState.isDarkMode) Icons.Default.DarkMode else Icons.Default.LightMode,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Switch(
+                        checked = uiState.isDarkMode,
+                        onCheckedChange = { viewModel.toggleDarkMode(it) },
+                        modifier = Modifier.scale(0.7f)
+                    )
+                }
+            }
+            
+            IconButton(
+                onClick = onSettingsClick,
+                colors = IconButtonDefaults.filledIconButtonColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                )
+            ) {
                 Icon(Icons.Default.Settings, contentDescription = "Settings", tint = MaterialTheme.colorScheme.primary)
             }
         }
 
-        // 2. CENTERED PROFILE IMAGE (Seperti foto yang Anda kirim)
+        // 2. CENTERED PROFILE IMAGE (Foto Asli Dikembalikan)
         Box(
             modifier = Modifier.fillMaxWidth(),
             contentAlignment = Alignment.Center
         ) {
-            Image(
-                painter = painterResource(Res.drawable.profile),
-                contentDescription = "Profile",
-                modifier = Modifier
-                    .size(160.dp)
-                    .clip(CircleShape)
-                    // Tidak menggunakan border tebal agar terlihat bersih seperti contoh Anda
-            )
+            Box(contentAlignment = Alignment.Center) {
+                // Glow effect background
+                Surface(
+                    modifier = Modifier.size(170.dp),
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                ) {}
+                
+                Image(
+                    painter = painterResource(Res.drawable.profile),
+                    contentDescription = "Profile",
+                    modifier = Modifier
+                        .size(150.dp)
+                        .clip(CircleShape)
+                        .border(2.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f), CircleShape)
+                )
+            }
         }
 
-        // 3. PROFILE INFO & ACTIONS
+        // 3. PROFILE INFO
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(24.dp))
             
             Text(
                 text = uiState.name,
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.ExtraBold,
+                color = MaterialTheme.colorScheme.onBackground
             )
             
             Text(
                 text = uiState.bio,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(28.dp))
 
             if (uiState.isEditing) {
                 EditProfileForm(
                     initialName = uiState.name,
                     initialBio = uiState.bio,
-                    onSave = { name, bio ->
-                        viewModel.updateProfile(name, bio)
-                    },
+                    onSave = { name, bio -> viewModel.updateProfile(name, bio) },
                     onCancel = { viewModel.setEditing(false) }
                 )
             } else {
-                OutlinedButton(
+                Button(
                     onClick = { viewModel.setEditing(true) },
-                    shape = RoundedCornerShape(12.dp),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)),
-                    modifier = Modifier.fillMaxWidth(0.5f)
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    ),
+                    modifier = Modifier.fillMaxWidth(0.5f).height(48.dp)
                 ) {
                     Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Edit Profile")
+                    Text("Edit Profile", fontWeight = FontWeight.Bold)
                 }
             }
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // 4. MODERN CONTACT CARD (Tetap menggunakan desain premium)
-            Card(
+            // 4. MODERN CONTACT CARD (Glassmorphism style)
+            Surface(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(28.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-                ),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
+                shape = RoundedCornerShape(32.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f))
             ) {
                 Column(modifier = Modifier.padding(24.dp)) {
                     ContactItem(Icons.Default.Email, uiState.email)
                     HorizontalDivider(
                         modifier = Modifier.padding(vertical = 16.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)
                     )
                     ContactItem(Icons.Default.Phone, uiState.phone)
                     HorizontalDivider(
                         modifier = Modifier.padding(vertical = 16.dp),
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)
                     )
                     ContactItem(Icons.Default.LocationOn, uiState.location)
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
             TextButton(onClick = { showDialog = true }) {
-                Text("Tentang Aplikasi", color = MaterialTheme.colorScheme.primary)
+                Text("Tentang Aplikasi", color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f))
             }
             
-            Spacer(modifier = Modifier.height(100.dp)) // Jarak aman untuk Bottom Nav
+            Spacer(modifier = Modifier.height(100.dp))
         }
     }
 
@@ -164,10 +185,11 @@ fun ProfileScreen(
         AlertDialog(
             onDismissRequest = { showDialog = false },
             confirmButton = {
-                TextButton(onClick = { showDialog = false }) { Text("OK") }
+                Button(onClick = { showDialog = false }) { Text("Selesai") }
             },
-            title = { Text("Informasi") },
-            text = { Text("Halo! Ini adalah aplikasi MyProfileApp yang dibuat menggunakan Kotlin Multiplatform.") }
+            title = { Text("MyProfile Premium") },
+            text = { Text("Versi 2.0 - Dibangun dengan Compose Multiplatform & KMP.") },
+            shape = RoundedCornerShape(28.dp)
         )
     }
 }
@@ -179,9 +201,9 @@ fun ContactItem(icon: androidx.compose.ui.graphics.vector.ImageVector, text: Str
         modifier = Modifier.fillMaxWidth()
     ) {
         Surface(
-            shape = RoundedCornerShape(12.dp),
+            shape = CircleShape,
             color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-            modifier = Modifier.size(40.dp)
+            modifier = Modifier.size(44.dp)
         ) {
             Box(contentAlignment = Alignment.Center) {
                 Icon(
@@ -196,7 +218,8 @@ fun ContactItem(icon: androidx.compose.ui.graphics.vector.ImageVector, text: Str
         Text(
             text = text,
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            fontWeight = FontWeight.Medium
         )
     }
 }
@@ -223,7 +246,7 @@ fun EditProfileForm(
             singleLine = true,
             shape = RoundedCornerShape(16.dp)
         )
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(12.dp))
         OutlinedTextField(
             value = bio,
             onValueChange = { bio = it },
@@ -232,20 +255,21 @@ fun EditProfileForm(
             maxLines = 2,
             shape = RoundedCornerShape(16.dp)
         )
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(20.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            TextButton(
+            OutlinedButton(
                 onClick = onCancel,
-                modifier = Modifier.weight(1f)
-            ) { Text("Cancel") }
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(12.dp)
+            ) { Text("Batal") }
             Button(
                 onClick = { onSave(name, bio) },
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier.weight(1f)
-            ) { Text("Save") }
+            ) { Text("Simpan") }
         }
     }
 }
@@ -260,8 +284,8 @@ fun SettingsScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text("Pengaturan") },
+            CenterAlignedTopAppBar(
+                title = { Text("Pengaturan", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
@@ -274,25 +298,39 @@ fun SettingsScreen(
             modifier = Modifier
                 .padding(padding)
                 .fillMaxSize()
-                .padding(16.dp)
+                .padding(20.dp)
         ) {
-            ListItem(
-                headlineContent = { Text("Tema Gelap") },
-                supportingContent = { Text("Ganti tampilan aplikasi") },
-                trailingContent = {
-                    Switch(
-                        checked = uiState.isDarkMode,
-                        onCheckedChange = { profileViewModel.toggleDarkMode(it) }
+            Surface(
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                shape = RoundedCornerShape(24.dp)
+            ) {
+                Column {
+                    ListItem(
+                        headlineContent = { Text("Tema Gelap", fontWeight = FontWeight.Bold) },
+                        supportingContent = { Text("Ganti tampilan aplikasi") },
+                        trailingContent = {
+                            Switch(
+                                checked = uiState.isDarkMode,
+                                onCheckedChange = { profileViewModel.toggleDarkMode(it) }
+                            )
+                        },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                    )
+                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                    ListItem(
+                        headlineContent = { Text("Informasi Perangkat", fontWeight = FontWeight.Bold) },
+                        supportingContent = { Text("${uiState.deviceModel}\n${uiState.deviceOs}") },
+                        leadingContent = { 
+                            Surface(shape = CircleShape, color = MaterialTheme.colorScheme.primary.copy(0.1f), modifier = Modifier.size(36.dp)) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Icon(Icons.Default.Info, contentDescription = null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.primary) 
+                                }
+                            }
+                        },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                     )
                 }
-            )
-            HorizontalDivider()
-            ListItem(
-                headlineContent = { Text("Informasi Perangkat") },
-                supportingContent = { Text("${uiState.deviceModel} - ${uiState.deviceOs}") },
-                leadingContent = { Icon(Icons.Default.Info, contentDescription = null) }
-            )
-            HorizontalDivider()
+            }
         }
     }
 }
