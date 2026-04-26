@@ -1,0 +1,26 @@
+CREATE TABLE NoteEntity (
+    id TEXT NOT NULL PRIMARY KEY,
+    title TEXT NOT NULL,
+    content TEXT NOT NULL,
+    isFavorite INTEGER AS Boolean DEFAULT 0 NOT NULL,
+    timestamp INTEGER NOT NULL
+);
+
+getAllNotes:
+SELECT * FROM NoteEntity ORDER BY timestamp DESC;
+
+getNoteById:
+SELECT * FROM NoteEntity WHERE id = ?;
+
+searchNotes:
+SELECT * FROM NoteEntity WHERE title LIKE ('%' || ? || '%') OR content LIKE ('%' || ? || '%') ORDER BY timestamp DESC;
+
+insertNote:
+INSERT OR REPLACE INTO NoteEntity(id, title, content, isFavorite, timestamp)
+VALUES (?, ?, ?, ?, ?);
+
+deleteNote:
+DELETE FROM NoteEntity WHERE id = ?;
+
+toggleFavorite:
+UPDATE NoteEntity SET isFavorite = CASE WHEN isFavorite = 1 THEN 0 ELSE 1 END WHERE id = ?;

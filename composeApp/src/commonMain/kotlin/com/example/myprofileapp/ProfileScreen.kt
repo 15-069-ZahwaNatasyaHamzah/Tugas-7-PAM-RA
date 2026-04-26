@@ -23,7 +23,11 @@ import myprofileapp.composeapp.generated.resources.*
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
-fun ProfileScreen(viewModel: ProfileViewModel, modifier: Modifier = Modifier) {
+fun ProfileScreen(
+    viewModel: ProfileViewModel, 
+    onSettingsClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var showDialog by remember { mutableStateOf(false) }
 
@@ -35,26 +39,14 @@ fun ProfileScreen(viewModel: ProfileViewModel, modifier: Modifier = Modifier) {
             .imePadding(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(10.dp))
-
-        // Dark Mode Switch Row
+        // Toolbar with Settings
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp),
-            horizontalArrangement = Arrangement.End,
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            horizontalArrangement = Arrangement.End
         ) {
-            Text(
-                text = if (uiState.isDarkMode) "Dark Mode" else "Light Mode",
-                style = MaterialTheme.typography.bodySmall
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Switch(
-                checked = uiState.isDarkMode,
-                onCheckedChange = { viewModel.toggleDarkMode(it) },
-                modifier = Modifier.scale(0.8f)
-            )
+            IconButton(onClick = onSettingsClick) {
+                Icon(Icons.Default.Settings, contentDescription = "Settings")
+            }
         }
 
         Spacer(modifier = Modifier.height(10.dp))
@@ -226,6 +218,54 @@ fun EditProfileForm(
             ) {
                 Text("Save", maxLines = 1)
             }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SettingsScreen(
+    profileViewModel: ProfileViewModel,
+    onBack: () -> Unit
+) {
+    val uiState by profileViewModel.uiState.collectAsStateWithLifecycle()
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Pengaturan") },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                }
+            )
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .padding(padding)
+                .fillMaxSize()
+                .padding(16.dp)
+        ) {
+            ListItem(
+                headlineContent = { Text("Tema Gelap") },
+                supportingContent = { Text("Ganti tampilan aplikasi") },
+                trailingContent = {
+                    Switch(
+                        checked = uiState.isDarkMode,
+                        onCheckedChange = { profileViewModel.toggleDarkMode(it) }
+                    )
+                }
+            )
+            HorizontalDivider()
+            ListItem(
+                headlineContent = { Text("Urutan Catatan") },
+                supportingContent = { Text("Belum diimplementasikan") },
+                trailingContent = {
+                    Text(uiState.sortOrder)
+                }
+            )
         }
     }
 }

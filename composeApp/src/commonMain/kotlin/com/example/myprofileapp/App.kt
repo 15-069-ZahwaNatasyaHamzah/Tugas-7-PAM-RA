@@ -15,18 +15,29 @@ import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import com.example.myprofileapp.db.AppDatabase
+import kotlinx.serialization.Serializable
 
+@Serializable
 sealed class Screen(val route: String, val icon: ImageVector? = null, val label: String? = null) {
     data object Notes : Screen("notes", Icons.Default.Description, "Notes")
     data object Favorites : Screen("favorites", Icons.Default.Favorite, "Favorites")
     data object Profile : Screen("profile", Icons.Default.Person, "Profile")
+    data object Settings : Screen("settings", Icons.Default.Settings, "Settings")
 }
 
 @Composable
-fun App() {
-    val profileViewModel: ProfileViewModel = viewModel { ProfileViewModel() }
-    val notesViewModel: NotesViewModel = viewModel { NotesViewModel() }
+fun App(
+    database: AppDatabase,
+    dataStore: DataStore<Preferences>
+) {
+    val noteRepository = remember { NoteRepository(database) }
+    val settingsRepository = remember { SettingsRepository(dataStore) }
+    val profileViewModel: ProfileViewModel = viewModel { ProfileViewModel(settingsRepository) }
+    val notesViewModel: NotesViewModel = viewModel { NotesViewModel(noteRepository) }
+
     val uiState by profileViewModel.uiState.collectAsStateWithLifecycle()
     val navController = rememberNavController()
 
@@ -106,7 +117,16 @@ fun App() {
                     )
                 }
                 composable(Screen.Profile.route) {
-                    ProfileScreen(viewModel = profileViewModel)
+                    ProfileScreen(
+                        viewModel = profileViewModel,
+                        onSettingsClick = { navController.navigate(Screen.Settings.route) }
+                    )
+                }
+                composable(Screen.Settings.route) {
+                    SettingsScreen(
+                        profileViewModel = profileViewModel,
+                        onBack = { navController.popBackStack() }
+                    )
                 }
                 composable("note_detail/{noteId}") { backStackEntry ->
                     val noteId = backStackEntry.arguments?.getString("noteId") ?: ""

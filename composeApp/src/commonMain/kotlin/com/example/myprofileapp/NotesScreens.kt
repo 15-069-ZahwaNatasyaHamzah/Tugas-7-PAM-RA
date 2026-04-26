@@ -24,25 +24,66 @@ fun NotesScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    if (uiState.notes.isEmpty()) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("Belum ada catatan. Tekan + untuk menambah.")
-        }
-    } else {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = 80.dp, start = 16.dp, end = 16.dp, top = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(uiState.notes) { note ->
-                NoteItem(
-                    note = note,
-                    onNoteClick = { onNoteClick(note.id) },
-                    onToggleFavorite = { viewModel.toggleFavorite(note.id) }
-                )
+    Column(modifier = Modifier.fillMaxSize()) {
+        SearchBar(
+            query = if (uiState is NotesUiState.Success) (uiState as NotesUiState.Success).searchQuery else "",
+            onQueryChange = viewModel::onSearch
+        )
+
+        when (uiState) {
+            is NotesUiState.Loading -> {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            }
+            is NotesUiState.Empty -> {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text((uiState as NotesUiState.Empty).message)
+                }
+            }
+            is NotesUiState.Success -> {
+                val notes = (uiState as NotesUiState.Success).notes
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(bottom = 80.dp, start = 16.dp, end = 16.dp, top = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(notes) { note ->
+                        NoteItem(
+                            note = note,
+                            onNoteClick = { onNoteClick(note.id) },
+                            onToggleFavorite = { viewModel.toggleFavorite(note.id) }
+                        )
+                    }
+                }
             }
         }
     }
+}
+
+@Composable
+fun SearchBar(
+    query: String,
+    onQueryChange: (String) -> Unit
+) {
+    OutlinedTextField(
+        value = query,
+        onValueChange = onQueryChange,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        placeholder = { Text("Cari catatan...") },
+        leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+        trailingIcon = {
+            if (query.isNotEmpty()) {
+                IconButton(onClick = { onQueryChange("") }) {
+                    Icon(Icons.Default.Clear, contentDescription = "Clear")
+                }
+            }
+        },
+        shape = RoundedCornerShape(24.dp),
+        singleLine = true
+    )
 }
 
 @Composable
@@ -51,24 +92,45 @@ fun FavoritesScreen(
     onNoteClick: (String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val favoriteNotes = uiState.notes.filter { it.isFavorite }
 
-    if (favoriteNotes.isEmpty()) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("Belum ada catatan favorit.")
-        }
-    } else {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = 80.dp, start = 16.dp, end = 16.dp, top = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(favoriteNotes) { note ->
-                NoteItem(
-                    note = note,
-                    onNoteClick = { onNoteClick(note.id) },
-                    onToggleFavorite = { viewModel.toggleFavorite(note.id) }
-                )
+    Column(modifier = Modifier.fillMaxSize()) {
+        Text(
+            "Favorit",
+            style = MaterialTheme.typography.headlineMedium,
+            modifier = Modifier.padding(16.dp)
+        )
+
+        when (uiState) {
+            is NotesUiState.Loading -> {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            }
+            else -> {
+                val notes = when (uiState) {
+                    is NotesUiState.Success -> (uiState as NotesUiState.Success).notes
+                    else -> emptyList()
+                }.filter { it.isFavorite }
+
+                if (notes.isEmpty()) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text("Belum ada catatan favorit.")
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(bottom = 80.dp, start = 16.dp, end = 16.dp, top = 8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(notes) { note ->
+                            NoteItem(
+                                note = note,
+                                onNoteClick = { onNoteClick(note.id) },
+                                onToggleFavorite = { viewModel.toggleFavorite(note.id) }
+                            )
+                        }
+                    }
+                }
             }
         }
     }
@@ -113,7 +175,13 @@ fun NoteDetailScreen(
     onEditClick: (String) -> Unit,
     onBack: () -> Unit
 ) {
-    val note = viewModel.getNoteById(noteId)
+    var note by remember { mutableStateOf<Note?>(null) }
+    var isLoading by remember { mutableStateOf(true) }
+
+    LaunchedEffect(noteId) {
+        note = viewModel.getNoteById(noteId)
+        isLoading = false
+    }
 
     Scaffold(
         topBar = {
@@ -128,11 +196,21 @@ fun NoteDetailScreen(
                     IconButton(onClick = { onEditClick(noteId) }) {
                         Icon(Icons.Default.Edit, contentDescription = "Edit")
                     }
+                    IconButton(onClick = { 
+                        viewModel.deleteNote(noteId)
+                        onBack()
+                    }) {
+                        Icon(Icons.Default.Delete, contentDescription = "Delete")
+                    }
                 }
             )
         }
     ) { padding ->
-        if (note == null) {
+        if (isLoading) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        } else if (note == null) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text("Catatan tidak ditemukan")
             }
@@ -144,9 +222,9 @@ fun NoteDetailScreen(
                     .verticalScroll(rememberScrollState())
                     .padding(16.dp)
             ) {
-                Text(text = note.title, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                Text(text = note!!.title, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(16.dp))
-                Text(text = note.content, style = MaterialTheme.typography.bodyLarge)
+                Text(text = note!!.content, style = MaterialTheme.typography.bodyLarge)
                 Spacer(modifier = Modifier.height(40.dp))
             }
         }
@@ -161,9 +239,20 @@ fun AddEditNoteScreen(
     onSave: () -> Unit,
     onBack: () -> Unit
 ) {
-    val note = remember { if (noteId != null) viewModel.getNoteById(noteId) else null }
-    var title by remember { mutableStateOf(note?.title ?: "") }
-    var content by remember { mutableStateOf(note?.content ?: "") }
+    var title by remember { mutableStateOf("") }
+    var content by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(noteId != null) }
+
+    LaunchedEffect(noteId) {
+        if (noteId != null) {
+            val note = viewModel.getNoteById(noteId)
+            if (note != null) {
+                title = note.title
+                content = note.content
+            }
+            isLoading = false
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -192,31 +281,37 @@ fun AddEditNoteScreen(
             )
         }
     ) { padding ->
-        Column(
-            modifier = Modifier
-                .padding(padding)
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp)
-                .imePadding()
-        ) {
-            OutlinedTextField(
-                value = title,
-                onValueChange = { title = it },
-                label = { Text("Judul") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            OutlinedTextField(
-                value = content,
-                onValueChange = { content = it },
-                label = { Text("Konten") },
+        if (isLoading) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        } else {
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 200.dp)
-            )
-            Spacer(modifier = Modifier.height(40.dp))
+                    .padding(padding)
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp)
+                    .imePadding()
+            ) {
+                OutlinedTextField(
+                    value = title,
+                    onValueChange = { title = it },
+                    label = { Text("Judul") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                OutlinedTextField(
+                    value = content,
+                    onValueChange = { content = it },
+                    label = { Text("Konten") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 200.dp)
+                )
+                Spacer(modifier = Modifier.height(40.dp))
+            }
         }
     }
 }

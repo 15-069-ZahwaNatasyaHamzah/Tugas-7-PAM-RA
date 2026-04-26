@@ -1,57 +1,74 @@
 package com.example.myprofileapp
 
 import androidx.lifecycle.ViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.launch
 
-data class NotesUiState(
-    val notes: List<Note> = listOf(
-        Note("1", "Tugas PAM", "Mengerjakan tugas navigasi MVVM"),
-        Note("2", "Belanja", "Beli susu dan roti", isFavorite = true),
-        Note("3", "Ide Project", "Aplikasi pencatat keuangan pribadi")
-    )
-)
+sealed interface NotesUiState {
+    data object Loading : NotesUiState
+    data class Success(
+        val notes: List<Note>,
+        val searchQuery: String = ""
+    ) : NotesUiState
+    data class Empty(val message: String) : NotesUiState
+}
 
-class NotesViewModel : ViewModel() {
-    private val _uiState = MutableStateFlow(NotesUiState())
-    val uiState: StateFlow<NotesUiState> = _uiState.asStateFlow()
+class NotesViewModel(
+    private val repository: NoteRepository
+) : ViewModel() {
+
+    private val _searchQuery = MutableStateFlow("")
+    
+    val uiState: StateFlow<NotesUiState> = combine(
+        _searchQuery,
+        repository.getAllNotes()
+    ) { query, notes ->
+        val filtered = if (query.isBlank()) notes else {
+            notes.filter { it.title.contains(query, ignoreCase = true) || it.content.contains(query, ignoreCase = true) }
+        }
+        
+        if (filtered.isEmpty()) {
+            if (query.isBlank()) NotesUiState.Empty("Belum ada catatan")
+            else NotesUiState.Empty("Tidak ada catatan yang cocok dengan '$query'")
+        } else {
+            NotesUiState.Success(filtered, query)
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), NotesUiState.Loading)
+
+    fun onSearch(query: String) {
+        _searchQuery.value = query
+    }
 
     fun addNote(title: String, content: String) {
-        val newNote = Note(
-            id = (System.currentTimeMillis()).toString(),
-            title = title,
-            content = content
-        )
-        _uiState.update { it.copy(notes = it.notes + newNote) }
+        viewModelScope.launch {
+            repository.insertNote(Note(
+                id = System.currentTimeMillis().toString(),
+                title = title,
+                content = content
+            ))
+        }
     }
 
     fun updateNote(id: String, title: String, content: String) {
-        _uiState.update { currentState ->
-            val updatedNotes = currentState.notes.map {
-                if (it.id == id) it.copy(title = title, content = content) else it
-            }
-            currentState.copy(notes = updatedNotes)
+        viewModelScope.launch {
+            val existing = repository.getNoteById(id)
+            repository.insertNote(existing?.copy(title = title, content = content) 
+                ?: Note(id, title, content))
         }
     }
 
     fun deleteNote(id: String) {
-        _uiState.update { currentState ->
-            currentState.copy(notes = currentState.notes.filter { it.id != id })
+        viewModelScope.launch {
+            repository.deleteNote(id)
         }
     }
 
     fun toggleFavorite(id: String) {
-        _uiState.update { currentState ->
-            val updatedNotes = currentState.notes.map {
-                if (it.id == id) it.copy(isFavorite = !it.isFavorite) else it
-            }
-            currentState.copy(notes = updatedNotes)
+        viewModelScope.launch {
+            repository.toggleFavorite(id)
         }
     }
 
-    fun getNoteById(id: String?): Note? {
-        return uiState.value.notes.find { it.id == id }
-    }
+    suspend fun getNoteById(id: String): Note? = repository.getNoteById(id)
 }
