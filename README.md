@@ -1,69 +1,57 @@
-# MyProfile & Notes App - Kotlin Multiplatform (Week 7 Upgrade)
+# MyProfile & Notes App - Premium Edition (Week 7 Upgrade)
 
-Aplikasi manajemen catatan (Notes App) interaktif yang dibangun menggunakan **Compose Multiplatform**. Versi ini adalah upgrade signifikan dengan fitur database lokal, pengaturan persisten, dan fungsionalitas pencarian.
+Aplikasi manajemen catatan (Notes App) modern yang dibangun menggunakan **Compose Multiplatform**. Proyek ini menonjolkan desain antarmuka premium, performa tinggi dengan penyimpanan lokal permanen, dan arsitektur kode yang bersih.
 
-## 🚀 Fitur Baru (Tugas 7 - Database & DataStore)
+## 📝 Deskripsi Proyek
+Aplikasi ini dirancang untuk memberikan pengalaman mencatat yang mulus dengan antarmuka yang estetis. Menggunakan **Kotlin Multiplatform (KMP)**, aplikasi ini berbagi logika bisnis dan UI di berbagai platform, sementara tetap mempertahankan performa native. Fokus utama upgrade minggu ini adalah pada **persistensi data**, **fitur pencarian cerdas**, dan **desain UI modern** yang terinspirasi oleh Material Design 3.
 
-- **SQLDelight Database**: 
-  - Penyimpanan lokal yang tangguh dan offline-first.
-  - CRUD lengkap: Create, Read, Update, Delete.
-  - Sinkronisasi reaktif menggunakan Kotlin Flow.
-- **Search Functionality**:
-  - Cari catatan berdasarkan judul atau konten secara real-time.
-  - Mendukung pencarian case-insensitive.
-- **Settings with DataStore**:
-  - Layar pengaturan baru untuk mengelola preferensi aplikasi.
-  - Tema (Dark/Light) tersimpan secara permanen menggunakan Jetpack DataStore Preferences.
-- **Offline-First Architecture**: 
-  - Data tersimpan secara lokal di perangkat, memungkinkan penggunaan tanpa koneksi internet.
-- **Proper UI States**:
-  - **Loading State**: Menampilkan indikator saat mengambil data.
-  - **Empty State**: Pesan informatif saat tidak ada catatan atau hasil pencarian nihil.
-  - **Content State**: Tampilan daftar catatan yang rapi.
+## 🚀 Fitur Utama
+- **Modern Staggered Grid**: Tampilan daftar catatan menggunakan tata letak grid dinamis (masonry style) untuk estetika yang lebih hidup.
+- **Full Offline CRUD**: Operasi Tambah, Baca, Edit, dan Hapus catatan yang tersimpan secara permanen di database lokal.
+- **Smart Search**: Pencarian real-time yang memungkinkan pengguna menemukan catatan berdasarkan judul atau isi secara instan.
+- **Favorite System**: Tandai catatan penting dengan ikon hati untuk akses cepat di tab Favorit.
+- **Premium Profile Screen**: Desain profil yang bersih dengan header minimalis, foto terpusat, dan kartu informasi kontak yang elegan.
+- **Persistent Settings**: Pengaturan tema (Dark/Light Mode) yang tersimpan secara permanen menggunakan Jetpack DataStore.
+- **Responsive & Scrollable**: Seluruh elemen UI dioptimalkan untuk berbagai ukuran layar tanpa ada konten yang terpotong.
 
-## 🏗️ Database Schema (SQLDelight)
+## 🗄️ Skema Database (SQLDelight)
+Aplikasi menggunakan **SQLDelight** untuk manajemen database SQLite yang *type-safe*.
 
 ```sql
 CREATE TABLE NoteEntity (
     id TEXT NOT NULL PRIMARY KEY,
     title TEXT NOT NULL,
     content TEXT NOT NULL,
-    isFavorite INTEGER AS Boolean DEFAULT 0 NOT NULL,
+    isFavorite INTEGER NOT NULL DEFAULT 0,
     timestamp INTEGER NOT NULL
 );
 ```
 
-## 🏗️ Struktur Arsitektur
+## 🔍 Query Utama
+Beberapa query SQL utama yang digunakan dalam aplikasi:
+- **Ambil Semua Catatan**: `SELECT * FROM NoteEntity ORDER BY timestamp DESC;`
+- **Pencarian**: `SELECT * FROM NoteEntity WHERE title LIKE ('%' || ? || '%') OR content LIKE ('%' || ? || '%') ORDER BY timestamp DESC;`
+- **Tambah/Update**: `INSERT OR REPLACE INTO NoteEntity(id, title, content, isFavorite, timestamp) VALUES (?, ?, ?, ?, ?);`
+- **Hapus**: `DELETE FROM NoteEntity WHERE id = ?;`
+- **Toggle Favorit**: `UPDATE NoteEntity SET isFavorite = CASE WHEN isFavorite = 1 THEN 0 ELSE 1 END WHERE id = ?;`
 
-### 1. Data Layer
-- `NoteRepository`: Menangani komunikasi antara ViewModel dan SQLDelight.
-- `SettingsRepository`: Menangani preferensi pengguna menggunakan DataStore.
-- `DatabaseDriverFactory`: Implementasi platform-specific untuk driver SQLite.
+## 🛠️ Teknologi yang Digunakan
+| Komponen | Teknologi |
+| --- | --- |
+| **Bahasa** | Kotlin |
+| **UI Framework** | Compose Multiplatform (Material 3) |
+| **Database** | SQLDelight 2.0.2 |
+| **Local Settings** | Jetpack DataStore Preferences 1.1.1 |
+| **Navigation** | Jetpack Navigation Compose |
+| **Architecture** | MVVM (Model-View-ViewModel) + Repository Pattern |
+| **State Management** | StateFlow & Kotlin Flow |
+| **Concurrency** | Kotlin Coroutines |
 
-### 2. UI Layer
-- `NotesViewModel`: Logika pencarian, filter favorit, dan operasi CRUD.
-- `ProfileViewModel`: Logika profil dan integrasi pengaturan tema DataStore.
-- `NotesScreens`: Layar daftar, detail, dan tambah/edit catatan.
-- `SettingsScreen`: Layar untuk mengelola preferensi aplikasi.
-
-## 🛠️ Tech Stack
-- **Database**: SQLDelight 2.0.2
-- **Persistence**: Jetpack DataStore 1.1.1
-- **Framework**: Compose Multiplatform
-- **Navigation**: Navigation Compose
-- **Architecture**: MVVM
-- **State Management**: StateFlow & Flow
-
-## 🏃 Cara Menjalankan Project
-
-### Prasyarat
-- Android Studio Koala+.
-- JDK 17+.
-
-### Langkah-langkah
-1.  Buka project di Android Studio.
-2.  Lakukan **Gradle Sync** untuk mengunduh dependensi SQLDelight dan DataStore.
-3.  Jalankan aplikasi pada emulator atau perangkat fisik.
+## 🏃 Cara Menjalankan
+1.  Buka project di **Android Studio Koala** atau versi terbaru.
+2.  Lakukan **Gradle Sync** untuk mengunduh semua dependensi.
+3.  Pilih konfigurasi run **`composeApp`**.
+4.  Pilih Emulator/Perangkat dan klik **Run**.
 
 ---
-*Tugas 7 Pengembangan Aplikasi Mobile (PAM).*
+*Tugas 7 - Pengembangan Aplikasi Mobile (PAM) RA.*

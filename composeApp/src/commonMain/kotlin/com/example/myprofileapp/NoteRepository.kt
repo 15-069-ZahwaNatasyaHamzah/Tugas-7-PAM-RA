@@ -28,7 +28,7 @@ class NoteRepository(database: AppDatabase) {
             id = note.id,
             title = note.title,
             content = note.content,
-            isFavorite = note.isFavorite,
+            isFavorite = if (note.isFavorite) 1L else 0L,
             timestamp = note.timestamp
         )
     }
@@ -49,7 +49,7 @@ class NoteRepository(database: AppDatabase) {
         id = id,
         title = title,
         content = content,
-        isFavorite = isFavorite,
+        isFavorite = isFavorite == 1L,
         timestamp = timestamp
     )
 }
