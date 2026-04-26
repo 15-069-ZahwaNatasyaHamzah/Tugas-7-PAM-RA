@@ -287,6 +287,12 @@ fun SettingsScreen(
                 }
             )
             HorizontalDivider()
+            ListItem(
+                headlineContent = { Text("Informasi Perangkat") },
+                supportingContent = { Text("${uiState.deviceModel} - ${uiState.deviceOs}") },
+                leadingContent = { Icon(Icons.Default.Info, contentDescription = null) }
+            )
+            HorizontalDivider()
         }
     }
 }

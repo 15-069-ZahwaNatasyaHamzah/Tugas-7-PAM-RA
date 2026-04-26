@@ -29,18 +29,19 @@ sealed class Screen(val route: String, val icon: ImageVector? = null, val label:
     data object Settings : Screen("settings", Icons.Default.Settings, "Settings")
 }
 
-@Composable
-fun App(
-    database: AppDatabase,
-    dataStore: DataStore<Preferences>
-) {
-    val noteRepository = remember { NoteRepository(database) }
-    val settingsRepository = remember { SettingsRepository(dataStore) }
-    val profileViewModel: ProfileViewModel = viewModel { ProfileViewModel(settingsRepository) }
-    val notesViewModel: NotesViewModel = viewModel { NotesViewModel(noteRepository) }
+import org.koin.compose.KoinContext
+import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.annotation.KoinExperimentalAPI
 
-    val uiState by profileViewModel.uiState.collectAsStateWithLifecycle()
-    val navController = rememberNavController()
+@Composable
+@OptIn(KoinExperimentalAPI::class)
+fun App() {
+    KoinContext {
+        val profileViewModel: ProfileViewModel = koinViewModel()
+        val notesViewModel: NotesViewModel = koinViewModel()
+
+        val uiState by profileViewModel.uiState.collectAsStateWithLifecycle()
+        val navController = rememberNavController()
 
     val colors = if (uiState.isDarkMode) {
         darkColorScheme(
@@ -147,6 +148,8 @@ fun App(
                         onBack = { navController.popBackStack() }
                     )
                 }
+            }
+        }
             }
         }
     }

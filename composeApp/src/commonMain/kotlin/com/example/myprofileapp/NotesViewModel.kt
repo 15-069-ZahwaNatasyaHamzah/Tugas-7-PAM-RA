@@ -5,34 +5,39 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
+import com.example.myprofileapp.platform.NetworkMonitor
+
 sealed interface NotesUiState {
     data object Loading : NotesUiState
     data class Success(
         val notes: List<Note>,
-        val searchQuery: String = ""
+        val searchQuery: String = "",
+        val isOnline: Boolean = true
     ) : NotesUiState
-    data class Empty(val message: String) : NotesUiState
+    data class Empty(val message: String, val isOnline: Boolean = true) : NotesUiState
 }
 
 class NotesViewModel(
-    private val repository: NoteRepository
+    private val repository: NoteRepository,
+    private val networkMonitor: NetworkMonitor
 ) : ViewModel() {
 
     private val _searchQuery = MutableStateFlow("")
     
     val uiState: StateFlow<NotesUiState> = combine(
         _searchQuery,
-        repository.getAllNotes()
-    ) { query, notes ->
+        repository.getAllNotes(),
+        networkMonitor.isOnline
+    ) { query, notes, online ->
         val filtered = if (query.isBlank()) notes else {
             notes.filter { it.title.contains(query, ignoreCase = true) || it.content.contains(query, ignoreCase = true) }
         }
         
         if (filtered.isEmpty()) {
-            if (query.isBlank()) NotesUiState.Empty("Belum ada catatan")
-            else NotesUiState.Empty("Tidak ada catatan yang cocok dengan '$query'")
+            if (query.isBlank()) NotesUiState.Empty("Belum ada catatan", online)
+            else NotesUiState.Empty("Tidak ada catatan yang cocok dengan '$query'", online)
         } else {
-            NotesUiState.Success(filtered, query)
+            NotesUiState.Success(filtered, query, online)
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), NotesUiState.Loading)
 

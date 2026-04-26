@@ -33,6 +33,27 @@ fun NotesScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+        val isOnline = when (uiState) {
+            is NotesUiState.Success -> (uiState as NotesUiState.Success).isOnline
+            is NotesUiState.Empty -> (uiState as NotesUiState.Empty).isOnline
+            else -> true
+        }
+
+        if (!isOnline) {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.errorContainer
+            ) {
+                Text(
+                    "Sedang Offline",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onErrorContainer,
+                    modifier = Modifier.padding(vertical = 4.dp),
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
+            }
+        }
+
         Text(
             "Catatan Saya",
             style = MaterialTheme.typography.headlineLarge,
@@ -115,6 +136,27 @@ fun FavoritesScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+        val isOnline = when (uiState) {
+            is NotesUiState.Success -> (uiState as NotesUiState.Success).isOnline
+            is NotesUiState.Empty -> (uiState as NotesUiState.Empty).isOnline
+            else -> true
+        }
+
+        if (!isOnline) {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.errorContainer
+            ) {
+                Text(
+                    "Sedang Offline",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onErrorContainer,
+                    modifier = Modifier.padding(vertical = 4.dp),
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
+            }
+        }
+
         Text(
             "Favorit",
             style = MaterialTheme.typography.headlineLarge,
