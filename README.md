@@ -1,17 +1,17 @@
-# NoteApp - Tugas 7 PAM
+# MyProfile & Notes App - Kotlin Multiplatform
 
-A modern, cross-platform Note-Taking application built with **Compose Multiplatform**, targeting Android, iOS, Desktop, and Web. This app demonstrates the usage of **SQLDelight** for local persistence and **Kotlin Multiplatform** for sharing logic across platforms.
+Aplikasi manajemen catatan (Notes App) ini merupakan pengembangan lanjutan berbasis Compose Multiplatform yang telah mengintegrasikan penyimpanan lokal menggunakan SQLDelight dengan pendekatan offline-first. Aplikasi mendukung fitur utama seperti CRUD (Create, Read, Update, Delete), pencarian catatan (search), serta halaman pengaturan menggunakan DataStore untuk preferensi tema dan pengurutan. Dengan arsitektur MVVM, aplikasi mampu mengelola data dan tampilan secara terstruktur, serta menghadirkan UI state yang lengkap (loading, empty, content) sehingga memberikan pengalaman pengguna yang lebih responsif dan tetap dapat digunakan tanpa koneksi internet.
 
-## 🚀 Features
+## Fitur
 
--   **Create, Read, Update, and Delete (CRUD) Notes**: Easily manage your daily thoughts.
--   **Search Functionality**: Quickly find notes by title or content.
--   **Favorites System**: Mark important notes as favorites for quick access.
--   **Dark Mode Support**: Seamlessly toggle between light and dark themes.
--   **Multiplatform**: Shared business logic and UI across Android, iOS, Desktop, and Web.
--   **Modern UI**: Built using Material 3 components with a clean and intuitive design.
+-   CRUD Catatan (Create, Read, Update, Delete): Kelola catatan harian dengan mudah.
+-   Fitur Pencarian: Temukan catatan dengan cepat berdasarkan judul atau isi.
+-   Sistem Favorit: Tandai catatan penting agar mudah diakses kembali.
+-   Mode Gelap (Dark Mode): Beralih antara tema terang dan gelap dengan nyaman.
+-   Multiplatform: Logika bisnis dan UI dapat digunakan di Android, iOS, Desktop, dan Web.
+-   UI Modern: Dibangun menggunakan Material 3 dengan tampilan yang bersih dan intuitif.
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 -   **UI Framework**: [Compose Multiplatform](https://www.jetbrains.com/lp/compose-multiplatform/)
 -   **Database**: [SQLDelight](https://cashapp.github.io/sqldelight/)
@@ -19,9 +19,9 @@ A modern, cross-platform Note-Taking application built with **Compose Multiplatf
 -   **Date & Time**: [kotlinx-datetime](https://github.com/Kotlin/kotlinx-datetime)
 -   **Navigation**: [Jetpack Navigation Compose](https://developer.android.com/jetpack/compose/navigation)
 
-## 📊 Database Schema
+## Database Schema
 
-The application uses **SQLDelight** for local database management. Below is the schema for the `NoteEntity` table:
+Aplikasi ini menggunakan **SQLDelight** untuk pengelolaan basis data lokal. Berikut adalah skema untuk tabel `NoteEntity` :
 
 ```sql
 CREATE TABLE NoteEntity (
@@ -33,30 +33,29 @@ CREATE TABLE NoteEntity (
 );
 ```
 
-### Queries included:
-- `getAllNotes`: Fetch all notes ordered by creation time.
-- `getFavoriteNotes`: Fetch only notes marked as favorite.
-- `searchNotes`: Search notes by title or content matching a query.
-- `insertNote`: Add a new note or update an existing one.
-- `deleteNote`: Remove a note by its ID.
+### Query yang tersedia:
+- `getAllNotes`: Mengambil semua catatan berdasarkan waktu pembuatan.
+- `getFavoriteNotes`: Mengambil hanya catatan yang ditandai sebagai favorit.
+- `searchNotes`: Mencari catatan berdasarkan judul atau isi sesuai kata kunci.
+- `insertNote`: Menambahkan catatan baru atau memperbarui catatan yang sudah ada.
+- `deleteNote`: Menghapus catatan berdasarkan ID.
 
-## 📸 Screenshots
+## Cara Menjalankan Project
 
-*(Note: Please ensure your screenshot images are placed in a folder named `screenshots` in the root directory for the links below to work on GitHub)*
+1. **Persiapan Resource**: Pastikan file `profile_user.png` berada di folder `composeApp/src/commonMain/composeResources/drawable/`.
+2. **Sync Project**: Lakukan *Gradle Sync* di Android Studio.
+3. **Run**:
+   - Untuk Android: Pilih modul `composeApp` lalu klik **Run**.
+   - Untuk Desktop: Jalankan perintah `./gradlew :composeApp:run` di terminal.
+
+## Dokumentasi Visual
 
 | Notes List | Edit Note | Profile |
 | :---: | :---: | :---: |
-| ![Notes List](screenshots/notes_list.png) | ![Edit Note](screenshots/edit_note.png) | ![Profile](screenshots/profile.png) |
+|<img width="478" height="865" alt="image" src="https://github.com/user-attachments/assets/16c33c20-6542-4ca6-8e01-657244020859" /> | <img width="484" height="873" alt="image" src="https://github.com/user-attachments/assets/0f2fd260-7455-4185-817f-231b0e5b42ae" /> | <img width="480" height="865" alt="image" src="https://github.com/user-attachments/assets/fcca4d3e-7042-45cb-8e56-0c4dc63d416a" />
+ |
+
+##  Video Demo
+Video demo fitur aplikasi dapat diakses melalui tautan berikut : https://youtube.com/shorts/elQ8uHpX1Aw?si=Vuo3DXu492FLlLeb 
 
 ---
-
-## 🏗️ Getting Started
-
-### Prerequisites
-- Android Studio Ladybug or later.
-- JDK 17 or later.
-
-### Running the App
-- **Android**: Select `composeApp` and run on an emulator or device.
-- **Desktop**: Run the `./gradlew :composeApp:run` command.
-- **Web**: Run the `./gradlew :composeApp:jsBrowserDevelopmentRun` command.
