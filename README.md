@@ -33,7 +33,7 @@ CREATE TABLE NoteEntity (
 );
 ```
 
-### Query yang tersedia:
+## Query yang tersedia:
 - `getAllNotes`: Mengambil semua catatan berdasarkan waktu pembuatan.
 - `getFavoriteNotes`: Mengambil hanya catatan yang ditandai sebagai favorit.
 - `searchNotes`: Mencari catatan berdasarkan judul atau isi sesuai kata kunci.
