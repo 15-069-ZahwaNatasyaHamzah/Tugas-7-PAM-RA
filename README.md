@@ -52,9 +52,7 @@ CREATE TABLE NoteEntity (
 
 | Notes List | Edit Note | Profile |
 | :---: | :---: | :---: |
-|<img width="478" height="865" alt="image" src="https://github.com/user-attachments/assets/16c33c20-6542-4ca6-8e01-657244020859" /> | <img width="484" height="873" alt="image" src="https://github.com/user-attachments/assets/0f2fd260-7455-4185-817f-231b0e5b42ae" /> | <img width="480" height="865" alt="image" src="https://github.com/user-attachments/assets/fcca4d3e-7042-45cb-8e56-0c4dc63d416a" />
- |
-
+|<img width="478" height="865" alt="image" src="https://github.com/user-attachments/assets/16c33c20-6542-4ca6-8e01-657244020859" /> | <img width="484" height="873" alt="image" src="https://github.com/user-attachments/assets/0f2fd260-7455-4185-817f-231b0e5b42ae" /> | <img width="480" height="865" alt="image" src="https://github.com/user-attachments/assets/fcca4d3e-7042-45cb-8e56-0c4dc63d416a" /> |
 ##  Video Demo
 Video demo fitur aplikasi dapat diakses melalui tautan berikut : https://youtube.com/shorts/elQ8uHpX1Aw?si=Vuo3DXu492FLlLeb 
 
